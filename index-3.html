@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        #heading {
+            color: orange;
+            font-size: 2rem;
+            padding: 1rem;
+            font-family: Georgia, serif;
+        }
+
+        .container {
+            height: 70vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game {
+            height: 60vmin;
+            width: 60vmin;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5vmin;
+        }
+
+        .box {
+            height: 18vmin;
+            width: 18vmin;
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 0 1rem rgba(0,0,0,0.3);
+            font-size: 8vmin;
+            color: #755b3b;
+            background-color: #e8e8e8;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .box:hover:not(:disabled) {
+            background-color: #d0d0d0;
+        }
+
+        #reset, #new-game {
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            color: white;
+            background-color: #463723;
+            border-radius: 1rem;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        #reset:hover, #new-game:hover {
+            background-color: #5a4830;
+        }
+
+        .msg-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        #msg {
+            color: white;
+            font-size: 8vmin;
+            font-family: Georgia, serif;
+        }
+
+        footer {
+            background-color: #000;
+            color: orange;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            padding: 0.75rem 1rem;
+            text-align: right;
+            padding-right: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="msg-container hide">
+        <p id="msg"></p>
+        <button id="new-game">New Game</button>
+    </div>
+
+    <main>
+        <h1 id="heading"><i>Tic Tac Toe Game</i></h1>
+
+        <div class="container">
+            <div class="game">
+               <button class="box"></button>
+               <button class="box"></button>
+               <button class="box"></button>
+               <button class="box"></button>
+               <button class="box"></button>
+               <button class="box"></button>
+               <button class="box"></button>
+               <button class="box"></button>
+               <button class="box"></button>
+            </div>
+        </div>
+
+        <button id="reset">Reset Game</button>
+    </main>
+
+    <footer>Developed by - Ravi Bhosale</footer>
+
+    <script>
+        let boxes = document.querySelectorAll(".box");
+        let reset = document.querySelector("#reset");
+        let newGameBtn = document.querySelector("#new-game");
+        let msgContainer = document.querySelector(".msg-container");
+        let msg = document.querySelector("#msg");
+
+        let board = ["", "", "", "", "", "", "", "", ""];
+
+        const HUMAN = "O";
+        const AI = "X";
+
+        let difficulty = "hard"; // "easy" | "medium" | "hard"
+
+        const winPatterns = [
+            [0,1,2],
+            [3,4,5],
+            [6,7,8],
+            [0,3,6],
+            [1,4,7],
+            [2,5,8],
+            [2,4,6],
+            [0,4,8]
+        ];
+
+        const resetGame = () => {
+            board = ["", "", "", "", "", "", "", "", ""];
+            boxes.forEach(box => {
+                box.innerText = "";
+                box.disabled = false;
+            });
+            msgContainer.classList.add("hide");
+        };
+
+        boxes.forEach((box, index) => {
+            box.addEventListener("click", () => {
+                if (board[index] !== "") return;
+                makeMove(index, HUMAN);
+                if (!checkGameOver()) {
+                    setTimeout(aiMove, 300);
+                }
+            });
+        });
+
+        const makeMove = (index, player) => {
+            board[index] = player;
+            boxes[index].innerText = player;
+            boxes[index].disabled = true;
+        };
+
+        const aiMove = () => {
+            let move;
+            if (difficulty === "easy") {
+                move = getRandomMove();
+            } else if (difficulty === "medium") {
+                move = Math.random() < 0.5 ? getRandomMove() : getBestMove();
+            } else {
+                move = getBestMove();
+            }
+            makeMove(move, AI);
+            checkGameOver();
+        };
+
+        const getRandomMove = () => {
+            let empty = board.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
+            return empty[Math.floor(Math.random() * empty.length)];
+        };
+
+        const getBestMove = () => {
+            let bestScore = -Infinity;
+            let move;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = AI;
+                    let score = minimax(board, 0, false);
+                    board[i] = "";
+                    if (score > bestScore) {
+                        bestScore = score;
+                        move = i;
+                    }
+                }
+            }
+            return move;
+        };
+
+        const minimax = (board, depth, isMaximizing) => {
+            let result = checkWinner();
+            if (result !== null) return result;
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === "") {
+                        board[i] = AI;
+                        let score = minimax(board, depth + 1, false);
+                        board[i] = "";
+                        bestScore = Math.max(score, bestScore);
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === "") {
+                        board[i] = HUMAN;
+                        let score = minimax(board, depth + 1, true);
+                        board[i] = "";
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+                return bestScore;
+            }
+        };
+
+        const checkWinner = () => {
+            for (let pattern of winPatterns) {
+                let [a,b,c] = pattern;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    if (board[a] === AI) return 10;
+                    if (board[a] === HUMAN) return -10;
+                }
+            }
+            if (!board.includes("")) return 0;
+            return null;
+        };
+
+        const checkGameOver = () => {
+            let result = checkWinner();
+            if (result === 10) { showMessage("AI Wins 🤖"); disableBoxes(); return true; }
+            else if (result === -10) { showMessage("You Win 🔥"); disableBoxes(); return true; }
+            else if (result === 0) { showMessage("It's a Draw 😐"); return true; }
+            return false;
+        };
+
+        const disableBoxes = () => boxes.forEach(box => box.disabled = true);
+
+        const showMessage = (text) => {
+            msg.innerText = text;
+            msgContainer.classList.remove("hide");
+        };
+
+        reset.addEventListener("click", resetGame);
+        newGameBtn.addEventListener("click", resetGame);
+    </script>
+</body>
+</html>
