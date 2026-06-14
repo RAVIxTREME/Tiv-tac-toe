@@ -78,7 +78,7 @@ Change `"hard"` to `"easy"` or `"medium"` and refresh the page.
 
 - **HTML5**
 - **CSS3**
-- **Vanilla JavaScript**
+- ** JavaScript**
 - **Minimax Algorithm**
 
 ---
@@ -87,7 +87,7 @@ Change `"hard"` to `"easy"` or `"medium"` and refresh the page.
 
 **Ravi Bhosale**  
 CSE Student | Maharashtra, India  
-GitHub: [@your-username](https://github.com/your-username)
+GitHub: [@RAVIxTREME](https://github.com/RAVIxTREME)
 
 ---
 
